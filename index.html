@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bubble Sort Online - Visual & Data</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; }
+        
+        /* Stile per il font equispaziato richiesto */
+        .courier-text {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            height: 400px;
+            overflow-y: scroll; /* Scroll se la lista è lunga */
+            word-wrap: break-word;
+        }
+
+        .chart-container {
+            background: #fff;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            height: 400px; /* Altezza fissa per allineamento */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #tempoResult { font-weight: bold; color: #dc3545; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="mb-4">Bubble Sort: Lista & Grafico</h2>
+    
+    <div class="row mb-3">
+        <div class="col-12 p-3 bg-light border rounded">
+            <label class="me-2">Dimensione Array:</label>
+            <input type="number" id="inputDimensione" value="50" min="5" max="2000" style="width: 80px;">
+            <button class="btn btn-primary btn-sm mx-2" onclick="generaNumeri()">1. Genera & Mostra</button>
+            <button class="btn btn-success btn-sm" onclick="avviaOrdinamento()">2. Ordina (Bubble Sort)</button>
+            <span id="tempoResult" class="ms-3">Tempo: --</span>
+        </div>
+    </div>
+
+    <div class="row">
+        
+        <div class="col-md-6 mb-3">
+            <h5>Lista Numeri (Courier)</h5>
+            <div id="displayArea" class="courier-text">
+                Premi "Genera" per visualizzare i dati.
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <h5>Rappresentazione Grafica</h5>
+            <div class="chart-container">
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <p> La parte HTML definisce l'impalcatura dell'interfaccia utente importando le librerie esterne necessarie (Bootstrap per il layout responsive e Chart.js per la visualizzazione dati) e organizzando il contenuto in una griglia flessibile: un'area superiore contiene i controlli di input e i pulsanti di attivazione, mentre l'area principale è suddivisa in due colonne (<code>col-md-6</code>) che ospitano rispettivamente il contenitore per la lista testuale in font monospazio e il tag <code>&lt;canvas&gt;</code> destinato al rendering dinamico del grafico a barre. </p>
+    <h3> Javascript </h3>
+    <dl>
+        <dt><code>generaNumeri()</code></dt>
+        <dd>Legge l'input utente, popola l'array con numeri casuali e resetta le visualizzazioni (testo e grafico rosso). 
+            <strong>listaNumeri.push(Math.floor(Math.random() * 500) + 1);</strong> è la funzione incaricata di generare
+            numeri interi (Math.floor) compresi tra 1 e 500.
+        </dd>
+
+        <dt><code>eseguiBubbleSort(arr)</code></dt>
+        <dd>
+            Implementa l'algoritmo di ordinamento a doppio ciclo, 
+            incluso in una <strong>Promise</strong> per consentire l'uso 
+            di <code>await</code> nel flusso asincrono. Nel dettaglio:
+        
+            <ul>
+                <li>
+                    <strong>Wrapper Async (<code>new Promise</code>)</strong>:<br>
+                    Avvolge l'intero algoritmo in un oggetto <em>Promise</em>. Questo è il trucco tecnico che permette alla funzione principale di usare la parola chiave <code>await</code>, mettendo in "pausa" il flusso del programma (e il cronometro) finché il calcolo non viene completato e restituito.
+                </li>
+                
+                <li>
+                    <strong>Inizializzazione Variabili</strong>:<br>
+                    Si definiscono <code>n</code> (la lunghezza dell'array) e <code>scambiato</code>. Quest'ultima è una "bandierina" (flag) fondamentale: serve a capire se l'array è ancora disordinato.
+                </li>
+
+                <li>
+                    <strong>Ciclo Principale (<code>do...while</code>)</strong>:<br>
+                    È il motore dell'algoritmo. Esegue il codice al suo interno e continua a ripeterlo finché la variabile <code>scambiato</code> rimane <em>true</em>. Se si completa un giro intero senza fare scambi, il ciclo si ferma (l'array è ordinato).
+                </li>
+
+                <li>
+                    <strong>Ciclo Interno (<code>for</code>)</strong>:<br>
+                    Scorre l'array confrontando le coppie di numeri adiacenti, dall'inizio fino all'ultimo elemento non ancora ordinato.
+                </li>
+
+                <li>
+                    <strong>Logica di Scambio (Swap)</strong>:<br>
+                    All'interno del ciclo, se il numero corrente è maggiore del successivo (<code>arr[i] > arr[i + 1]</code>):
+                    <ul>
+                        <li>Si salva il valore in una variabile <code>temp</code>.</li>
+                        <li>Si scambiano le posizioni dei due numeri.</li>
+                        <li>Si imposta <code>scambiato = true</code> per segnalare che l'ordinamento non è ancora finito.</li>
+                    </ul>
+                </li>
+
+                <li>
+                    <strong>Ottimizzazione (<code>n--</code>)</strong>:<br>
+                    Alla fine di ogni ciclo <code>for</code>, il numero più grande della lista "galleggia" (bubble) sicuramente nella sua posizione finale in fondo. Riduciamo quindi <code>n</code> di 1 per evitare di ricontrollare quella posizione nei giri successivi, risparmiando tempo.
+                </li>
+
+                <li>
+                    <strong>Risoluzione (<code>resolve</code>)</strong>:<br>
+                    Quando il ciclo <code>while</code> termina (ovvero quando nessun numero è stato scambiato), viene chiamata <code>resolve(arr)</code>. Questo restituisce l'array ordinato alla funzione chiamante e sblocca l'attesa dell'<code>await</code>.
+                </li>
+            </ul>
+        
+        </dd>
+
+        <dt><code>avviaOrdinamento()</code></dt>
+        <dd>Gestisce il cronometro: avvia <code>performance.now()</code>, attende il completamento del sort e aggiorna l'interfaccia con il tempo trascorso e il grafico ordinato (blu).</dd>
+
+        <dt><code>mostraListaTesto()</code></dt>
+        <dd>
+            Converte l'array numerico in una stringa leggibile 
+            separata da barre verticali (<code>|</code>) per il box di testo.
+            <strong>performance.now()</strong> Conta il tempo trascorso dall'apertura della pagina
+        </dd>
+        <dt><code>aggiornaGrafico(dati, colore)</code></dt>
+        <dd>Gestisce <strong>Chart.js</strong>: distrugge l'istanza precedente del grafico e ne renderizza una nuova statica (senza animazioni) per garantire velocità.</dd>
+    </dl>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // --- VARIABILI GLOBALI ---
+    let listaNumeri = [];
+    let chartInstance = null; // Serve per distruggere il grafico vecchio prima di crearne uno nuovo
+
+    // 1. GENERAZIONE DATI
+    function generaNumeri() {
+        const dimensione = parseInt(document.getElementById('inputDimensione').value);
+        listaNumeri = [];
+        
+        // Generazione procedurale
+        for (let i = 0; i < dimensione; i++) {
+            listaNumeri.push(Math.floor(Math.random() * 500) + 1);
+        }
+
+        // Aggiorna UI testo
+        mostraListaTesto();
+        
+        // Aggiorna UI grafico (Colore Rosso = Disordinato)
+        aggiornaGrafico(listaNumeri, 'rgba(255, 99, 132, 0.7)'); 
+        
+        document.getElementById('tempoResult').innerText = "Tempo: Pronto.";
+    }
+
+    // 2. ALGORITMO BUBBLE SORT (Promise)
+    function eseguiBubbleSort(arr) {
+        return new Promise((resolve) => {
+            let n = arr.length;
+            let scambiato;
+            do {
+                scambiato = false;
+                for (let i = 0; i < n - 1; i++) {
+                    if (arr[i] > arr[i + 1]) {
+                        let temp = arr[i];
+                        arr[i] = arr[i + 1];
+                        arr[i + 1] = temp;
+                        scambiato = true;
+                    }
+                }
+                n--;
+            } while (scambiato);
+            resolve(arr);
+        });
+    }
+
+    // 3. GESTIONE PRINCIPALE (Async/Await)
+    async function avviaOrdinamento() {
+        if (listaNumeri.length === 0) return alert("Devi generare prima i numeri.");
+
+        document.getElementById('tempoResult').innerText = "Ordinamento in corso...";
+        
+        // Timer 
+        const inizio = performance.now();
+        console.log("inizio ordinamento a: "+inizio);
+        await eseguiBubbleSort(listaNumeri); // Attende la fine del calcolo
+        const fine = performance.now();
+        console.log("finisco ordinamento a: "+fine);
+
+        // Aggiorna UI testo
+        mostraListaTesto();
+
+        // Aggiorna UI grafico (Colore Blu/Verde = Ordinato)
+        aggiornaGrafico(listaNumeri, 'rgba(54, 162, 235, 0.7)');
+
+        const durata = (fine - inizio).toFixed(4);
+        document.getElementById('tempoResult').innerText = `Tempo: ${durata} ms`;
+    }
+
+    // --- FUNZIONI DI SUPPORTO GRAFICO E TESTO ---
+
+    function mostraListaTesto() {
+        // Usa join con ' | ' per separare meglio visivamente nel font courier
+        document.getElementById('displayArea').innerText = listaNumeri.join(' | ');
+    }
+
+    function aggiornaGrafico(dati, coloreBarre) {
+    const ctx = document.getElementById('myChart').getContext('2d');
+
+    // Se il grafico esiste già, aggiorniamo solo i dati (così si anima!)
+    if (chartInstance) {
+        chartInstance.data.datasets[0].data = dati;
+        chartInstance.data.datasets[0].backgroundColor = coloreBarre;
+        chartInstance.data.datasets[0].borderColor = coloreBarre.replace('0.7', '1');
+        
+        // Questo comando dice a Chart.js di ridisegnare con animazione
+        chartInstance.update(); 
+    } 
+    // Se non esiste (prima volta), lo creiamo da zero
+    else {
+        // Creiamo le etichette (asse X)
+        const labels = dati.length > 50 ? Array(dati.length).fill('') : dati.map((_, i) => i);
+
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Valore Numero',
+                    data: dati,
+                    backgroundColor: coloreBarre,
+                    borderColor: coloreBarre.replace('0.7', '1'),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                // Riattiviamo l'animazione (default è true, ma possiamo personalizzarla)
+                animation: {
+                    duration: 1000, // 1 secondo di animazione
+                    easing: 'easeOutQuart' // Effetto rallentamento finale morbido
+                },
+                plugins: { legend: { display: false } },
+                scales: {
+                        x: { display: dati.length <= 50 }, 
+                        y: { 
+                            beginAtZero: true,
+                            max: 550, // <--- AGGIUNGI QUESTA RIGA (Blocca il tetto a 550)
+                            ticks: {
+                                stepSize: 50 // Opzionale: disegna una riga ogni 50 unità
+                            }
+                        }
+                    }
+            }
+        });
+    }
+}
+</script>
+
+</body>
+</html>
